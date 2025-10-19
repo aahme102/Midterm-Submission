@@ -1,0 +1,237 @@
+---
+title: "Midterm Qs1"
+author: "Anous Ahmed"
+date: "2025-10-17"
+output:
+  pdf_document:
+  highlight: espresso
+---
+
+Link to Repository: https://github.com/aahme102/Midterm-.git
+
+# Part I: Civic Issue – Obesity in the United States
+
+Obesity is a major health concern in the United States. It is reported that obesity contributes to over \$170 billion in annual medical costs. This is a grave strain on the healthcare system that deepens inequalities and increases healthcare costs (CDC, 2024). This includes billions in extra costs to the Medicare and Medicaid programs. According to the World Health Organization (WHO), obesity is defined as having a body mass index (BMI) of 30 kg/m2 or higher for adults (Chusan et al., 2025). The prevalence of this disease is a significant health concern, contributing to major complications like diabetes, heart disease, high blood pressure, sleep apnea, and cancer. It also contributes to poor mental health, reduced quality of life, and greater levels of disability (Mayo, 2023). According to the Centers for Disease Control and Prevention (CDC), the prevalence of obesity among adults aged 20 and older in the U.S. was 41.9% from 2017 to 2020. This equates to over 100 million individuals (CDC, 2024). It is further projected that by 2035, obesity rates will rise even further, reaching 25% among adults and 19% among youth (Chusan et al., 2025).
+
+One of the major causes of obesity in the United States is aggressive marketing of unhealthy food and beverages. It is reported that major Food & Beverage companies spend nearly \$14 billion annually on advertising fast food, sugary drinks, candy, and processed snacks (The State of Obesity, 2023). On the other hand, socioeconomic barriers are another fundamental reason as to why there is an obesity epidemic in the U.S. Individuals in low-income communities are deprived of reliable nutritional information. Hence, they cannot access a healthy nutrition plan. Moreover, areas with limited or no public transportation prevent individuals from accessing grocery stores with fresh produce or local fitness centers. Hence, leading to weight gain, and in excessive cases, obesity.
+
+Children and adolescents with obesity are likely to remain obese into adulthood, perpetuating a cycle of poor health outcomes and social disadvantages. This has a negative impact on the national productivity and workforce capacity. national productivity and workforce capacity. Therefore, addressing this civic problem requires an indoctrination of healthcare measures and technological solutions to cultivate sustainable lifestyles.
+
+
+
+# Part II: Web scraping 
+
+```{r}
+library(rvest)
+library(httr)
+library(jsonlite)
+library(tidycensus)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+url <- "https://www.scrapethissite.com/pages/simple/"
+html <- read_html(url)
+```
+
+```{r}
+block <- html |> 
+  html_elements("div.col-md-4.country")
+block  
+
+Country = block |> 
+  html_element("h3.country-name") |> 
+  html_text2()
+head (Country, 10)
+
+Capital <- block |> 
+  html_element("span.country-capital") |> 
+  html_text2()
+head (Capital, 10)
+
+Population <- block %>%
+  html_element("span.country-population") %>%
+  html_text2()
+head (Population, 10)
+
+Area <- block %>%
+  html_element("span.country-area") %>%
+  html_text2()
+head(Area, 10)
+```
+
+```{r}
+df = tibble(
+  Country,
+  Capital,
+  Population,
+  Area
+)
+```
+
+```{r}
+head(df, 10) 
+```
+
+# PART III: API Access
+
+**Step 1: Identify Relevant Variables**
+
+https://api.census.gov/data/2023/acs/acs5/groups/B19013.html
+
+https://api.census.gov/data/2023/acs/acs5/groups/B28002.html
+
+
+Median household income (in the past 12 months): **B19013_001E**
+Households with broadband Internet: **B28002_004E** 
+Total households with any type of internet access: **B28002_001E**
+
+**Step 2: Retrieve Data**
+```{r}
+readRenviron("~/.Renviron")
+```
+
+```{r}
+county_data <- get_acs(
+  geography = "county",
+  variables  = c(
+  median_income = "B19013_001E", 
+  broadband_internet = "B28002_004E", 
+  internet_access = "B28002_001E"
+  ),
+  state = "IL",
+  year = 2023,
+  survey = "acs5"
+)
+```
+
+**Step 3: Clean and Transform Data** 
+
+```{r}
+county_data1a = county_data %>%
+  select(NAME, variable, estimate) %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = estimate
+  ) 
+```
+
+```{r}  
+county_data1a = county_data1a %>%  
+  rename(
+    income = B19013_001,
+    broadband = B28002_004,
+    total_households = B28002_001
+  ) %>%
+  separate(NAME, into = c("county", "state"), sep = ", ") %>%
+  mutate(broadband_rate = (broadband / total_households) * 100) %>%
+  arrange(desc(broadband_rate))
+```
+
+```{r} 
+county_data1a %>%
+  slice(1:10)
+```
+
+**Step 4: Analyze patterns** 
+
+**a) Compute the mean and median broadband rate across all Illinois counties.** 
+
+```{r}  
+# mean for the broadband rate
+county_data1a %>% 
+  summarize(mean(broadband_rate, na.rm = TRUE))
+```
+
+
+```{r}  
+# median for the broadband rate
+county_data1a %>% 
+  summarize(median(broadband_rate, na.rm = TRUE))
+```
+
+**b) Identify the top 5 counties with the highest broadband access and the bottom 5 counties with the lowest.**
+
+```{r}
+# Counties with highest broadband access
+county_data1a %>%
+  arrange(desc(broadband_rate)) %>%
+  select(county, broadband_rate) %>%
+  slice(1:5)
+```
+
+```{r}
+# Counties with lowest broadband access
+county_data1a %>%
+  arrange(broadband_rate) %>%
+  select(county, broadband_rate) %>%
+  slice(1:5)
+```
+
+**Step 5: Visualize the results**
+
+**Scatterplot: Income vs Broadband Access Rate Across Illinois Counties (2023)**
+
+```{r}  
+ggplot(county_data1a, aes(x = income, y = broadband_rate)) +
+  geom_point(color = "orange") +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  labs(
+    title = "Income vs Broadband Access Rate Across Illinois Counties (2023)",
+    x = "Median Household Income (USD)",
+    y = "Broadband Access Rate (%)"
+  ) +
+  theme_minimal()
+```
+
+**Barplot**
+
+```{r}  
+# top 10 broadband access 
+top_10 = county_data1a %>%
+    slice_max(broadband_rate, n = 10)
+top_10
+```
+
+```{r}  
+# bottom 10 broadband access
+bottom_10 = county_data1a %>%
+  slice_min(broadband_rate, n = 10)
+bottom_10
+```
+
+```{r}  
+top_bottom_10 = rbind(top_10, bottom_10)
+top_bottom_10
+```
+
+```{r}
+ggplot(top_bottom_10, aes(x = reorder(county, broadband_rate), y = broadband_rate, fill = broadband_rate)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "The 10 Top and Bottom Counties in Illinois by Broadband Access  Rate",
+    x = "County",
+    y = "Broadband Access Rate (%)"
+  ) +
+  theme_minimal()
+```
+
+**Step 6: Reflection**
+
+**1. What patterns do you observe between income and broadband access?**
+
+It can be illustrated from the scatterplot that median household income and the broadband access rate have a positive linear relationship. As the median household income increases for counties increases, the percentage of households with access to broadband also increases. Hence, illustrating how digital access grows in cases where economic resources increases. Therefore, wealthier households with greater economic resources are able to increase their access to digital connectivity.  
+
+**2. What might explain the variation in broadband access across counties?**
+
+One of the major reasons why there is a variation in broadband access across counties is economic disparity. Since wealthier households have higher income, they are able to gain improved access to broadband services. However, lower income households lack the financial resources to attain such benefits. Moreover, the lower income households in certain counties may have poor broadband infrastructure in general due to the ignorance by such counties from making investments. On the other hand, there are also variations in digital literacy which explains as to why some counties have better access to broadband than others.    
+
+**3. How could public administrators use this data to inform digital inclusion policies?**
+
+This data can be very beneficial for public administrators in directing affordable plans and digital inclusion policies toward counties that suffer from limited access to broadband facilties. Funds and grants can be allocated appropriately toward counties that have limited digital infrastructure. This can assist in tackling the barriers of digital divide and ensuring that there is equal access to digital technological solutions across different communities. Hence, enabling public trust in the government agencies. 
+
+**4. What are some limitations of using ACS data for local decision-making?**
+
+There are several limitations associated with using ACS data for local decision-making. Since ACS depends on sampling, it has high margins of error (MOE). For instance, when comparing two local areas, there is a large margin of error making it difficult to tell if the differences are statistically significant. Hence, undermining informed policy decisions. On the other hand, with ACS, data is self-reported causing inconsistencies across regions. Moreover, the ACS 5-year estimates are not designed for geographical areas that are undergoing rapid shifts like gentrification, natural disasters, or an economic boom. By the time the data would be released, it would already be outdated for planning purposes. For this reason, the ACS data should only be used to supplement public administrators when working with local surveys or administrative data for policy decisions. 

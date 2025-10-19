@@ -1,0 +1,24 @@
+---
+title: "Part 1"
+author: "Anous Ahmed"
+date: "2025-10-17"
+output:
+  html_document:
+    theme: flatly
+    highlight: espresso
+    toc: true
+    toc_float: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part I: Civic Issue – Obesity in the United States
+
+Obesity is a major health concern in the United States. It is reported that obesity contributes to over \$170 billion in annual medical costs. This is a grave strain on the healthcare system that deepens inequalities and increases healthcare costs (CDC, 2024). This includes billions in extra costs to the Medicare and Medicaid programs. According to the World Health Organization (WHO), obesity is defined as having a body mass index (BMI) of 30 kg/m2 or higher for adults (Chusan et al., 2025). The prevalence of this disease is a significant health concern, contributing to major complications like diabetes, heart disease, high blood pressure, sleep apnea, and cancer. It also contributes to poor mental health, reduced quality of life, and greater levels of disability (Mayo, 2023). According to the Centers for Disease Control and Prevention (CDC), the prevalence of obesity among adults aged 20 and older in the U.S. was 41.9% from 2017 to 2020. This equates to over 100 million individuals (CDC, 2024). It is further projected that by 2035, obesity rates will rise even further, reaching 25% among adults and 19% among youth (Chusan et al., 2025).
+
+One of the major causes of obesity in the United States is aggressive marketing of unhealthy food and beverages. It is reported that major Food & Beverage companies spend nearly \$14 billion annually on advertising fast food, sugary drinks, candy, and processed snacks (The State of Obesity, 2023). On the other hand, socioeconomic barriers are another fundamental reason as to why there is an obesity epidemic in the U.S. Individuals in low-income communities are deprived of reliable nutritional information. Hence, they cannot access a healthy nutrition plan. Moreover, areas with limited or no public transportation prevent individuals from accessing grocery stores with fresh produce or local fitness centers. Hence, leading to weight gain, and in excessive cases, obesity.
+
+Children and adolescents with obesity are likely to remain obese into adulthood, perpetuating a cycle of poor health outcomes and social disadvantages. This has a negative impact on the national productivity and workforce capacity. national productivity and workforce capacity. Therefore, addressing this civic problem requires an indoctrination of healthcare measures and technological solutions to cultivate sustainable lifestyles.
